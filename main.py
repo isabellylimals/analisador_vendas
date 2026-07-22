@@ -1,6 +1,7 @@
 from src.database import Database
 from src.etl import ETL
 from src.analytics import SalesAnalytics
+from src.visualizations import SalesVisualizer
 import pandas as pd
 
 def main():
@@ -45,6 +46,14 @@ def main():
             
             print("\nPRIMEIRAS 5 CIDADES COM MAIOR FATURAMENTO:")
             print(relatorio['segmentos_clientes'].head())
+            
+            visualizer = SalesVisualizer()
+            visualizer.generate_all_visualizations()
+            
+            print("\n" + "="*50)
+            print("ANALISE CONCLUIDA COM SUCESSO!")
+            print("="*50)
+            print(f"Relatorio salvo em: data/processed/visualizations/")
             
             return dados, relatorio
         else:

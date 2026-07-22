@@ -10,15 +10,26 @@ class SalesAnalytics:
         self.load_data()
     
     def load_data(self):
-        query = "SELECT * FROM vendas"
+        query = "SELECT data_venda, produto, cidade, estado, quantidade, preco_unitario, total_venda FROM vendas"
         try:
             result = self.db.execute_read_query(query)
-            self.df = pd.DataFrame(result, columns=['id', 'data_venda', 'produto', 'cidade', 
-                                                    'estado', 'quantidade', 'preco_unitario', 
-                                                    'total_venda'])
-            print(f"Dados carregados: {len(self.df)} registros")
+            
+            if result and len(result) > 0:
+                colunas = ['data_venda', 'produto', 'cidade', 'estado', 
+                          'quantidade', 'preco_unitario', 'total_venda']
+                
+                self.df = pd.DataFrame(result, columns=colunas)
+                self.df['data_venda'] = pd.to_datetime(self.df['data_venda'])
+                
+                print(f"Dados carregados: {len(self.df)} registros")
+                print(f"Colunas disponiveis: {list(self.df.columns)}")
+            else:
+                print("Nenhum dado encontrado na tabela vendas")
+                self.df = pd.DataFrame()
+                
         except Exception as e:
             print(f"Erro ao carregar dados: {e}")
+            self.df = pd.DataFrame()
     
     def get_basic_statistics(self):
         if self.df is None or self.df.empty:
@@ -153,6 +164,10 @@ class SalesAnalytics:
     def generate_full_report(self):
         print("Gerando relatorio completo de vendas...")
         
+        if self.df is None or self.df.empty:
+            print("Sem dados para gerar relatorio")
+            return {}
+        
         relatorio = {
             'estatisticas_basicas': self.get_basic_statistics(),
             'top_produtos': self.get_top_products(),
@@ -171,16 +186,20 @@ if __name__ == "__main__":
     analytics = SalesAnalytics()
     report = analytics.generate_full_report()
     
-    print("\n=== ESTATISTICAS BASICAS ===")
-    for key, value in report['estatisticas_basicas'].items():
-        if isinstance(value, float):
-            print(f"{key}: R$ {value:,.2f}")
+    if report and report.get('estatisticas_basicas'):
+        print("\n=== ESTATISTICAS BASICAS ===")
+        for key, value in report['estatisticas_basicas'].items():
+            if isinstance(value, float):
+                print(f"{key}: R$ {value:,.2f}")
+            else:
+                print(f"{key}: {value}")
+        
+        print("\n=== TOP 5 PRODUTOS ===")
+        if not report['top_produtos'].empty:
+            print(report['top_produtos'].head())
         else:
-            print(f"{key}: {value}")
-    
-    print("\n=== TOP 5 PRODUTOS ===")
-    print(report['top_produtos'].head())
-    
-    print("\n CORRELACOES")
-    for key, value in report['correlacoes'].items():
-        print(f"{key}: {value:.3f}")
+            print("Sem dados de produtos")
+        
+        print("\n=== CORRELACOES ===")
+        for key, value in report['correlacoes'].items():
+            print(f"{key}: {value:.3f}")
