@@ -46,6 +46,7 @@ wheels/
 # Data
 data/raw/*.csv
 data/processed/*.csv
+data/processed/vizualizations
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
